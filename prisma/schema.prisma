@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,15 +8,57 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-
-  email String  @unique
-  name  String?
-  hash  String
+  id                    Int       @id @default(autoincrement())
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @default(now()) @map("updated_at")
+  email                 String    @unique
+  name                  String?
+  hash                  String
+  comments              Comment[]
+  userProjects          Project[] @relation("owners")
+  collaborationProjects Project[] @relation("collaborators")
 
   @@map("user")
 }
 
+model Project {
+  id            Int    @id @default(autoincrement())
+  name          String
+  masterId      Int    @map("master_id")
+  master        User   @relation("owners", fields: [masterId], references: [id])
+  collaborators User[] @relation("collaborators")
 
+  @@map("project")
+}
+
+model Column {
+  id    Int    @id @default(autoincrement())
+  title String
+  order Int
+  tasks Task[]
+
+  @@map("column")
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @map("updated_at")
+  title       String
+  description String?
+  columnId    Int       @map("column_id")
+  order       Int
+  comments    Comment[]
+  column      Column    @relation(fields: [columnId], references: [id])
+
+  @@map("task")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  authorId  Int      @map("author_id")
+  taskId    Int      @map("task_id")
+  author    User     @relation(fields: [authorId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id])
+}

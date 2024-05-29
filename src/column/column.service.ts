@@ -3,6 +3,7 @@ import { PrismaService } from './../prisma/prisma.service';
 import { CreateColumnDto } from './dto/create-column.dto';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DeleteColumnDto } from './dto/delete-column.dto';
+import { ChangeColumnOrderDto } from './dto/change-order-column.dto';
 
 @Injectable()
 export class ColumnService {
@@ -79,6 +80,68 @@ export class ColumnService {
     );
 
     return await this.prisma.$transaction(updatedColumns);
+  }
+
+  async changeColumnOrder(changeColumnOrderDto: ChangeColumnOrderDto) {
+    const column = await this.prisma.column.findFirst({
+      where: {
+        id: changeColumnOrderDto.id,
+      },
+    });
+
+
+    if (column.order > changeColumnOrderDto.newOrder) {
+      const columnsToUpdate = await this.prisma.column.findMany({
+        where: {
+          order: {
+            gte: changeColumnOrderDto.newOrder,
+            lt: column.order,
+          },
+        },
+      });
+
+      const updatedColumnsPromises = columnsToUpdate.map((col) =>
+        this.prisma.column.update({
+          where: { id: col.id },
+          data: {
+            order: col.order + 1,
+          },
+        }),
+      );
+
+      await this.prisma.$transaction(updatedColumnsPromises);
+    }
+
+    if (column.order < changeColumnOrderDto.newOrder) {
+      const columnsToUpdate = await this.prisma.column.findMany({
+        where: {
+          order: {
+            gt: column.order,
+            lte: changeColumnOrderDto.newOrder,
+          },
+        },
+      });
+
+      const updatedColumnsPromises = await columnsToUpdate.map((col) =>
+        this.prisma.column.update({
+          where: { id: col.id },
+          data: {
+            order: col.order - 1,
+          },
+        }),
+      );
+
+      await this.prisma.$transaction(updatedColumnsPromises);
+    }
+
+    const updatedColumn = this.prisma.column.update({
+      where: {
+        id: changeColumnOrderDto.id,
+      },
+      data: { order: changeColumnOrderDto.newOrder },
+    });
+
+    return updatedColumn;
   }
 
   async findColumnByIdWithProject(columnId) {

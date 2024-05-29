@@ -16,6 +16,7 @@ import { CreateTaskDto } from 'src/task/dto/create-task.dto';
 import { TaskService } from 'src/task/task.service';
 import { DeleteColumnDto } from 'src/column/dto/delete-column.dto';
 import { UpdateTaskDto } from 'src/task/dto/update-task.dto';
+import { ChangeColumnOrderDto } from 'src/column/dto/change-order-column.dto';
 
 @Injectable()
 export class ProjectService {
@@ -201,6 +202,10 @@ export class ProjectService {
       throw new BadRequestException('User is not a member');
 
     return this.columnService.editColumn(column);
+  }
+
+  async changeColumnOrder(column: ChangeColumnOrderDto) {
+    return await this.columnService.changeColumnOrder(column);
   }
 
   async deleteColumn(userId: number, column: DeleteColumnDto) {

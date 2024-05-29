@@ -1,3 +1,4 @@
+import { ChangeColumnOrderDto } from './../column/dto/change-order-column.dto';
 import { DeleteTaskDto } from './../task/dto/delete-task.dto';
 import { UpdateTaskDto } from './../task/dto/update-task.dto';
 import { DeleteColumnDto } from './../column/dto/delete-column.dto';
@@ -93,6 +94,16 @@ export class ProjectController {
     @Body() column: EditColumnDto,
   ) {
     return this.projectService.updateColumn(currentUserId, column);
+  }
+
+  @Patch('/column-order')
+  @HttpCode(200)
+  @Auth()
+  changeOrder(
+    @CurrentUser('id') currentUserId,
+    @Body() column: ChangeColumnOrderDto,
+  ) {
+    return this.projectService.changeColumnOrder(column);
   }
 
   @Delete('/column')

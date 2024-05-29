@@ -22,20 +22,23 @@ model User {
 }
 
 model Project {
-  id            Int    @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   name          String
-  masterId      Int    @map("master_id")
-  master        User   @relation("owners", fields: [masterId], references: [id])
-  collaborators User[] @relation("collaborators")
+  masterId      Int      @map("master_id")
+  columns       Column[] @relation("project_columns")
+  master        User     @relation("owners", fields: [masterId], references: [id], onDelete: Cascade)
+  collaborators User[]   @relation("collaborators")
 
   @@map("project")
 }
 
 model Column {
-  id    Int    @id @default(autoincrement())
-  title String
-  order Int
-  tasks Task[]
+  id        Int     @id @default(autoincrement())
+  title     String
+  order     Int
+  projectId Int     @map("project_id")
+  project   Project @relation("project_columns", fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
 
   @@map("column")
 }
@@ -49,7 +52,7 @@ model Task {
   columnId    Int       @map("column_id")
   order       Int
   comments    Comment[]
-  column      Column    @relation(fields: [columnId], references: [id])
+  column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
 
   @@map("task")
 }
@@ -59,6 +62,6 @@ model Comment {
   createdAt DateTime @default(now()) @map("created_at")
   authorId  Int      @map("author_id")
   taskId    Int      @map("task_id")
-  author    User     @relation(fields: [authorId], references: [id])
-  task      Task     @relation(fields: [taskId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }

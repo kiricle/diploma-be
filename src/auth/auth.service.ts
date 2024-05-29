@@ -45,16 +45,21 @@ export class AuthService {
     };
   }
 
-  private createTokens(userId: number) {
+  private async createTokens(userId: number) {
     const data = { id: userId };
 
-    const accessToken = this.jwt.sign(data, {
+    const accessTokenPromise = this.jwt.signAsync(data, {
       expiresIn: '2h',
     });
 
-    const refreshToken = this.jwt.sign(data, {
+    const refreshTokenPromise = this.jwt.signAsync(data, {
       expiresIn: '30d',
     });
+
+    const [accessToken, refreshToken] = await Promise.all([
+      accessTokenPromise,
+      refreshTokenPromise,
+    ]);
 
     return { accessToken, refreshToken };
   }

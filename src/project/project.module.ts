@@ -12,8 +12,7 @@ import { TaskService } from 'src/task/task.service';
     ProjectService,
     PrismaService,
     UserService,
-    TaskService,
-    ColumnService,
   ],
+  exports: [ProjectService]
 })
 export class ProjectModule {}

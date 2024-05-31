@@ -1,15 +1,39 @@
+import { ProjectService } from './../project/project.service';
 import { EditColumnDto } from './dto/edit-column.dto';
 import { PrismaService } from './../prisma/prisma.service';
 import { CreateColumnDto } from './dto/create-column.dto';
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { DeleteColumnDto } from './dto/delete-column.dto';
 import { ChangeColumnOrderDto } from './dto/change-order-column.dto';
 
 @Injectable()
 export class ColumnService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectService: ProjectService,
+  ) {}
 
-  async editColumn(editColumnDto: EditColumnDto) {
+  async editColumn(userId: number, editColumnDto: EditColumnDto) {
+    const project = await this.projectService.findProjectById(
+      editColumnDto.projectId,
+    );
+
+    if (!project) throw new BadRequestException('Project does not exist');
+
+    const doesColumnExist = project.columns.some(
+      ({ id }) => editColumnDto.id === id,
+    );
+
+    if (!doesColumnExist)
+      throw new BadRequestException('Column does not exist');
+
+    if (!this.projectService.isProjectMember(userId, project))
+      throw new BadRequestException('User is not a member');
+
     const updatedColumn = await this.prisma.column.update({
       data: {
         title: editColumnDto.title,
@@ -22,17 +46,15 @@ export class ColumnService {
     return updatedColumn;
   }
 
-  async createColumn(createColumnDto: CreateColumnDto) {
-    const project = await this.prisma.project.findUnique({
-      where: {
-        id: createColumnDto.projectId,
-      },
-      include: {
-        columns: true,
-      },
-    });
+  async createColumn(userId: number, createColumnDto: CreateColumnDto) {
+    const project = await this.projectService.findProjectById(
+      createColumnDto.projectId,
+    );
 
-    if (!project) throw new BadRequestException('Project does not exist');
+    if (!project) throw new BadRequestException('The project does not exists');
+
+    if (!this.projectService.isProjectMember(userId, project))
+      throw new ForbiddenException('User is not a member');
 
     const order = project.columns.reduce(
       (acc, column) => (acc > column.order ? acc : column.order + 1),
@@ -50,17 +72,33 @@ export class ColumnService {
     return column;
   }
 
-  async deleteColumn({ id, projectId }: DeleteColumnDto) {
+  async deleteColumn(userId: number, deleteColumnDto: DeleteColumnDto) {
+    const project = await this.projectService.findProjectById(
+      deleteColumnDto.projectId,
+    );
+
+    if (!project) throw new BadRequestException('Project does not exist');
+
+    const doesColumnExist = project.columns.some(
+      ({ id }) => deleteColumnDto.id === id,
+    );
+
+    if (!doesColumnExist)
+      throw new BadRequestException('Column does not exist');
+
+    if (!this.projectService.isProjectMember(userId, project))
+      throw new BadRequestException('User is not a member');
+
     const deletedColumn = await this.prisma.column.delete({
       where: {
-        id,
+        id: deleteColumnDto.id,
       },
     });
 
     const [columnsToUpdate] = await this.prisma.$transaction([
       this.prisma.column.findMany({
         where: {
-          projectId,
+          projectId: deleteColumnDto.projectId,
           order: {
             gt: deletedColumn.order,
           },
@@ -88,7 +126,6 @@ export class ColumnService {
         id: changeColumnOrderDto.id,
       },
     });
-
 
     if (column.order > changeColumnOrderDto.newOrder) {
       const columnsToUpdate = await this.prisma.column.findMany({
@@ -144,12 +181,13 @@ export class ColumnService {
     return updatedColumn;
   }
 
-  async findColumnByIdWithProject(columnId) {
-    return await this.prisma.column.findFirst({
+  findColumnByIdWithProject(columnId) {
+    return this.prisma.column.findFirst({
       where: {
         id: columnId,
       },
       include: {
+        tasks: true,
         project: {
           include: {
             collaborators: true,

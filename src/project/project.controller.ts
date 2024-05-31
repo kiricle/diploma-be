@@ -1,8 +1,3 @@
-import { ChangeColumnOrderDto } from './../column/dto/change-order-column.dto';
-import { DeleteTaskDto } from './../task/dto/delete-task.dto';
-import { UpdateTaskDto } from './../task/dto/update-task.dto';
-import { DeleteColumnDto } from './../column/dto/delete-column.dto';
-import { CreateTaskDto } from './../task/dto/create-task.dto';
 import {
   Body,
   Controller,
@@ -10,8 +5,7 @@ import {
   HttpCode,
   Param,
   Patch,
-  Post,
-  Delete,
+  Post
 } from '@nestjs/common';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
@@ -19,8 +13,6 @@ import { AddCollaboratorDto } from './dto/add-collaborator.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectService } from './project.service';
-import { CreateColumnDto } from 'src/column/dto/create-column.dto';
-import { EditColumnDto } from 'src/column/dto/edit-column.dto';
 
 @Controller('projects')
 export class ProjectController {
@@ -74,67 +66,6 @@ export class ProjectController {
   @Auth()
   getCollaboratingProjects(@CurrentUser('id') currentUserId) {
     return this.projectService.getCollaboratingProjectsByUserId(currentUserId);
-  }
-
-  @Post('/column')
-  @HttpCode(201)
-  @Auth()
-  createColumn(
-    @CurrentUser('id') currentUserId,
-    @Body() column: CreateColumnDto,
-  ) {
-    return this.projectService.createColumn(currentUserId, column);
-  }
-
-  @Patch('/column')
-  @HttpCode(200)
-  @Auth()
-  updateColumn(
-    @CurrentUser('id') currentUserId,
-    @Body() column: EditColumnDto,
-  ) {
-    return this.projectService.updateColumn(currentUserId, column);
-  }
-
-  @Patch('/column-order')
-  @HttpCode(200)
-  @Auth()
-  changeOrder(
-    @CurrentUser('id') currentUserId,
-    @Body() column: ChangeColumnOrderDto,
-  ) {
-    return this.projectService.changeColumnOrder(column);
-  }
-
-  @Delete('/column')
-  @HttpCode(200)
-  @Auth()
-  deleteColumn(
-    @CurrentUser('id') currentUserId,
-    @Body() column: DeleteColumnDto,
-  ) {
-    return this.projectService.deleteColumn(currentUserId, column);
-  }
-
-  @Post('/task')
-  @HttpCode(201)
-  @Auth()
-  createTask(@CurrentUser('id') currentUserId, @Body() task: CreateTaskDto) {
-    return this.projectService.createTask(currentUserId, task);
-  }
-
-  @Patch('/task')
-  @HttpCode(200)
-  @Auth()
-  updateTask(@CurrentUser('id') currentUserId, @Body() task: UpdateTaskDto) {
-    return this.projectService.updateTask(currentUserId, task);
-  }
-
-  @Delete('/task')
-  @HttpCode(200)
-  @Auth()
-  deleteTask(@CurrentUser('id') currentUserId, @Body() task: DeleteTaskDto) {
-    return this.projectService.deleteTask(currentUserId, task);
   }
 
   @Get('/:id')

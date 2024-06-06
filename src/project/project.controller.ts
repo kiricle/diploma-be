@@ -1,11 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
   Patch,
-  Post
+  Post,
 } from '@nestjs/common';
 import { Auth } from 'src/auth/decorators/auth.decorator';
 import { CurrentUser } from 'src/auth/decorators/user.decorator';
@@ -13,6 +14,8 @@ import { AddCollaboratorDto } from './dto/add-collaborator.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectService } from './project.service';
+import { DeleteProjectDto } from './dto/delete-project.dto';
+import { DeleteCollaboratorDto } from './dto/delete-collaborator.dto';
 
 @Controller('projects')
 export class ProjectController {
@@ -54,6 +57,19 @@ export class ProjectController {
     );
   }
 
+  @Delete('/collaborator')
+  @HttpCode(200)
+  @Auth()
+  async deleteCollaborator(
+    @CurrentUser('id') currentUserId,
+    @Body() deleteCollaboratorDto: DeleteCollaboratorDto,
+  ) {
+    return await this.projectService.deleteCollaborator(
+      currentUserId,
+      deleteCollaboratorDto,
+    );
+  }
+
   @Get('/own')
   @HttpCode(200)
   @Auth()
@@ -66,6 +82,16 @@ export class ProjectController {
   @Auth()
   getCollaboratingProjects(@CurrentUser('id') currentUserId) {
     return this.projectService.getCollaboratingProjectsByUserId(currentUserId);
+  }
+
+  @Delete('/')
+  @HttpCode(200)
+  @Auth()
+  deleteProject(
+    @CurrentUser('id') currentUserId,
+    @Body() deleteProjectDto: DeleteProjectDto,
+  ) {
+    return this.projectService.deleteProject(currentUserId, deleteProjectDto);
   }
 
   @Get('/:id')

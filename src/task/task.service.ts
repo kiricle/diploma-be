@@ -1,10 +1,16 @@
 import { ProjectService } from './../project/project.service';
 import { DeleteTaskDto } from './dto/delete-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { ColumnService } from 'src/column/column.service';
+import { AddCommentDto } from './dto/add-comment.dto';
+import { GetCommentsDto } from './dto/get-comments.dto';
 
 @Injectable()
 export class TaskService {
@@ -102,5 +108,56 @@ export class TaskService {
     );
 
     return await this.prisma.$transaction(updatedTasks);
+  }
+
+  async addComment(userId: number, addCommentDto: AddCommentDto) {
+    const addedComment = this.prisma.comment.create({
+      data: {
+        authorId: userId,
+        content: addCommentDto.content,
+        taskId: addCommentDto.taskId,
+      },
+    });
+
+    return addedComment;
+  }
+
+  async getComments(userId: number, getCommentDto: GetCommentsDto) {
+    const taskId = Number(getCommentDto.taskId);
+
+    if (isNaN(taskId)) throw new BadRequestException('Wrong id provided');
+
+    const task = await this.prisma.task.findFirst({
+      where: {
+        id: taskId,
+      },
+      include: {
+        column: {
+          include: {
+            project: {
+              include: {
+                collaborators: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!task) throw new BadRequestException('There is no such task');
+
+    if (!this.projectService.isProjectMember(userId, task.column.project))
+      throw new ForbiddenException('User is not a project member');
+
+    const comments = await this.prisma.comment.findMany({
+      where: {
+        taskId,
+      },
+      include: {
+        author: true,
+      },
+    });
+
+    return comments;
   }
 }

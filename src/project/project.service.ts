@@ -7,6 +7,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from './../user/user.service';
 import { AddCollaboratorDto } from './dto/add-collaborator.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { DeleteCollaboratorDto } from './dto/delete-collaborator.dto';
+import { DeleteProjectDto } from './dto/delete-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
@@ -23,6 +25,24 @@ export class ProjectService {
         masterId: masterId,
       },
     });
+  }
+
+  async deleteProject(userId: number, { id: projectId }: DeleteProjectDto) {
+    const project = await this.findProjectById(projectId);
+
+    if (!project)
+      throw new BadRequestException('There is no project with such id');
+
+    if (project.masterId !== userId)
+      throw new ForbiddenException('Only owner can delete the project');
+
+    const deletedProject = await this.prisma.project.delete({
+      where: {
+        id: projectId,
+      },
+    });
+
+    return deletedProject;
   }
 
   async updateProjectName(
@@ -53,15 +73,16 @@ export class ProjectService {
 
   async addCollaborator(
     currentUserId: number,
-    { id, collaboratorEmail }: AddCollaboratorDto,
+    { projectId, email }: AddCollaboratorDto,
   ) {
-    const project = await this.findProjectWithCollaboratorsById(id);
+    const project = await this.findProjectWithCollaboratorsById(projectId);
 
     if (!project) throw new BadRequestException('Project does not exist');
+
     if (currentUserId !== project.masterId)
       throw new ForbiddenException('Only owner can add collaborators');
 
-    const user = await this.userService.getByEmail(collaboratorEmail);
+    const user = await this.userService.getByEmail(email);
 
     if (!user) throw new BadRequestException('Collaborator does not exist');
 
@@ -71,9 +92,44 @@ export class ProjectService {
     if (isAlreadyCollaborator)
       throw new BadRequestException('User is already a collaborator');
 
-    const updatedProject = await this.addCollaboratorToProjectById(user.id, id);
+    const updatedProject = await this.addCollaboratorToProjectById(
+      user.id,
+      projectId,
+    );
 
     return updatedProject;
+  }
+
+  async deleteCollaborator(
+    userId: number,
+    deleteCollaboratorDto: DeleteCollaboratorDto,
+  ) {
+    const project = await this.findProjectWithCollaboratorsById(
+      deleteCollaboratorDto.projectId,
+    );
+
+    if (!project) throw new BadRequestException('There is no such project');
+
+    if (userId !== project.masterId)
+      throw new ForbiddenException('Only owner can delete collaborators');
+
+    if (!this.isProjectMember(deleteCollaboratorDto.id, project))
+      throw new BadRequestException('The user is not a member');
+
+    const deletedCollaborator = await this.prisma.project.update({
+      where: {
+        id: deleteCollaboratorDto.projectId,
+      },
+      data: {
+        collaborators: {
+          disconnect: {
+            id: deleteCollaboratorDto.id,
+          },
+        },
+      },
+    });
+
+    return deletedCollaborator;
   }
 
   async getOwnProjectsByUserId(userId: number) {
@@ -140,7 +196,15 @@ export class ProjectService {
         },
         columns: {
           include: {
-            tasks: true,
+            tasks: {
+              include: {
+                comments: {
+                  include: {
+                    author: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

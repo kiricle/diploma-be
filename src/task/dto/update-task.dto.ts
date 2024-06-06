@@ -11,5 +11,5 @@ export class UpdateTaskDto {
   description: string;
 
   @IsNumber()
-  columnId:number;
+  columnId: number;
 }

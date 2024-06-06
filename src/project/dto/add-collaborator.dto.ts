@@ -2,8 +2,8 @@ import { IsEmail, IsNumber } from 'class-validator';
 
 export class AddCollaboratorDto {
   @IsNumber()
-  id: number;
+  projectId: number;
 
   @IsEmail()
-  collaboratorEmail: string;
+  email: string;
 }

@@ -51,9 +51,7 @@ export class ColumnController {
   @Patch('order')
   @HttpCode(200)
   @Auth()
-  changeColumnOrder(
-    @Body() column: ChangeColumnOrderDto,
-  ) {
-    return this.columnService.changeColumnOrder(column)
+  changeColumnOrder(@Body() column: ChangeColumnOrderDto) {
+    return this.columnService.changeColumnOrder(column);
   }
 }

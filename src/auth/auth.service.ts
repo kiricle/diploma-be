@@ -21,6 +21,7 @@ export class AuthService {
   ) {}
 
   async login(dto: AuthDto) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hash, ...user } = await this.validateUser(dto);
     const tokens = await this.createTokens(user.id);
 
@@ -35,6 +36,7 @@ export class AuthService {
 
     if (userExists) throw new BadRequestException('User already exists');
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hash, ...user } = await this.userService.create(dto);
 
     const tokens = await this.createTokens(user.id);
@@ -82,6 +84,7 @@ export class AuthService {
 
     if (!result) throw new UnauthorizedException('Invalid refresh token');
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hash, ...user } = await this.userService.getById(result.id);
 
     const tokens = await this.createTokens(user.id);
@@ -98,20 +101,20 @@ export class AuthService {
 
     res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
       httpOnly: true,
-      domain: 'localhost',
+      // domain: 'diploma-be-h706.onrender.com',
       expires: expiresIn,
       secure: true,
-      sameSite: 'none',
+      sameSite: 'lax',
     });
   }
 
   removeRefreshTokenFromResponse(res: Response) {
     res.cookie(this.REFRESH_TOKEN_NAME, '', {
       httpOnly: true,
-      domain: 'localhost',
+      // domain: 'localhost',
       expires: new Date(0),
-      secure: true,
-      sameSite: 'none',
+      secure: false,
+      sameSite: 'lax',
     });
   }
 }

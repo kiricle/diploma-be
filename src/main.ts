@@ -9,12 +9,9 @@ async function bootstrap() {
   app.use(cookieParser());
 
   const corsOptions: CorsOptions = {
-    origin: ['https://diploma-rust.vercel.app/'],
+    origin: ['https://diploma-rust.vercel.app/', 'http://localhost:3000'],
     credentials: true,
-    allowedHeaders: 'Content-Type, Accept',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     exposedHeaders: 'set-cookie',
-    preflightContinue: true,
   };
 
   app.enableCors(corsOptions);

@@ -14,10 +14,10 @@ async function bootstrap() {
     // credentials: true,
     // exposedHeaders: 'set-cookie',
     // allowedHeaders: ['Content-type', 'Accept', 'Authorization'],
-    origin: '*', // Allow all origins
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS', // Allowed methods
-    allowedHeaders: 'Content-Type, Accept, Authorization', // Allowed headers
-    credentials: false,
+    origin: 'https://diploma-rust.vercel.app', // Allow all origins
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    credentials: true,
   };
 
   app.enableCors(corsOptions);

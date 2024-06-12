@@ -4,11 +4,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { AuthDto } from './dto/auth.dto';
 import { verify } from 'argon2';
 import { Response } from 'express';
+import { UserService } from 'src/user/user.service';
+import { AuthDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -101,20 +101,20 @@ export class AuthService {
 
     res.cookie(this.REFRESH_TOKEN_NAME, refreshToken, {
       httpOnly: true,
-      // domain: 'diploma-be-h706.onrender.com',
+      domain: 'localhost',
       expires: expiresIn,
-      secure: true,
-      sameSite: 'lax',
+      secure: false,
+      sameSite: 'none',
     });
   }
 
   removeRefreshTokenFromResponse(res: Response) {
     res.cookie(this.REFRESH_TOKEN_NAME, '', {
       httpOnly: true,
-      // domain: 'localhost',
+      domain: 'localhost',
       expires: new Date(0),
       secure: false,
-      sameSite: 'lax',
+      sameSite: 'none',
     });
   }
 }

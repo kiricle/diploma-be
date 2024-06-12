@@ -5,11 +5,11 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('')
+  @Get('/')
   getUser() {
-    return {
+    return `{
       id: '1',
       name: 'Ya',
-    };
+    };`;
   }
 }

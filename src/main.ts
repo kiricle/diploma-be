@@ -12,7 +12,7 @@ async function bootstrap() {
     // origin: ['https://diploma-rust.vercel.app', 'http://localhost:3000'],
     origin: '*',
     // credentials: true,
-    exposedHeaders: 'set-cookie',
+    // exposedHeaders: 'set-cookie',
     allowedHeaders: ['Content-type', 'Accept', 'Authorization'],
   };
 

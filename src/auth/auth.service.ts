@@ -103,7 +103,7 @@ export class AuthService {
       httpOnly: true,
       // domain: 'localhost',
       expires: expiresIn,
-      secure: false,
+      secure: true,
       sameSite: 'none',
     });
   }
@@ -113,7 +113,7 @@ export class AuthService {
       httpOnly: true,
       // domain: 'localhost',
       expires: new Date(0),
-      secure: false,
+      secure: true,
       sameSite: 'none',
     });
   }
